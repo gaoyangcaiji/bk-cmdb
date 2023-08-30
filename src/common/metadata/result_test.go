@@ -4,15 +4,14 @@ import (
 	"testing"
 
 	"configcenter/src/common/errors"
-	"configcenter/src/common/metadata"
 )
 
 func TestResponse(t *testing.T) {
 
 	err := errors.New(9999999, "test-msg")
 
-	respPtr := &metadata.Response{
-		BaseResp: metadata.BaseResp{
+	respPtr := &Response{
+		BaseResp: BaseResp{
 			Result: false,
 			Code:   err.GetCode(),
 			ErrMsg: err.Error(),
@@ -31,8 +30,8 @@ func TestResponse(t *testing.T) {
 		return
 	}
 
-	resp := metadata.Response{
-		BaseResp: metadata.BaseResp{
+	resp := Response{
+		BaseResp: BaseResp{
 			Result: false,
 			Code:   err.GetCode(),
 			ErrMsg: err.Error(),
@@ -51,8 +50,8 @@ func TestResponse(t *testing.T) {
 		return
 	}
 
-	respSucc := metadata.Response{
-		BaseResp: metadata.BaseResp{
+	respSucc := Response{
+		BaseResp: BaseResp{
 			Result: true,
 			Code:   0,
 			ErrMsg: "",

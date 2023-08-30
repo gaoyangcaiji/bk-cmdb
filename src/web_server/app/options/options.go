@@ -16,6 +16,7 @@ package options
 import (
 	"configcenter/src/common/core/cc/config"
 	"configcenter/src/storage/dal/redis"
+	"time"
 
 	"github.com/spf13/pflag"
 )
@@ -75,11 +76,28 @@ type Site struct {
 	HelpDocUrl   string
 }
 
+// Config is a LDAP configuration.
+type Ldap struct {
+	Endpoints  []string
+	BindDN     string
+	BindPass   string
+	BaseDN     string
+	AttrClaims map[string]string
+	RoleBaseDN string
+	RoleAttr   string
+	RoleClaim  string
+	CacheSize  int
+	CacheTTL   time.Duration
+	IsTLS      bool
+	TimeOut    int
+}
+
 // Config TODO
 type Config struct {
 	Site                      Site
 	Session                   Session
 	Redis                     redis.Config
+	Ldap                      Ldap
 	Version                   string
 	AgentAppUrl               string
 	LoginUrl                  string

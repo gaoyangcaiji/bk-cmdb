@@ -22,6 +22,7 @@ import (
 	"configcenter/src/common"
 	"configcenter/src/common/backbone"
 	cc "configcenter/src/common/backbone/configcenter"
+	"configcenter/src/common/ldapclient"
 	"configcenter/src/common/resource/esb"
 	"configcenter/src/common/types"
 	"configcenter/src/storage/dal/redis"
@@ -104,7 +105,8 @@ func Run(ctx context.Context, cancel context.CancelFunc, op *options.ServerOptio
 
 	// init esb client
 	esb.InitEsbClient(nil)
-
+	//init ldap client
+	ldapclient.InitLdapClient(&webSvr.Config.Ldap)
 	err = backbone.StartServer(ctx, cancel, engine, service.WebService(), false)
 	if err != nil {
 		return err
@@ -155,6 +157,21 @@ func (w *WebServer) onServerConfigUpdate(previous, current cc.ProcessConfig) {
 	if "" == w.Config.Session.DefaultLanguage {
 		w.Config.Session.DefaultLanguage = "zh-cn"
 	}
+
+	w.Config.Ldap.Endpoints, _ = cc.StringSlice("webServer.ldap.endpoint")
+	w.Config.Ldap.BindDN, _ = cc.String("webServer.ldap.bindDN")
+	w.Config.Ldap.BaseDN, _ = cc.String("webServer.ldap.baseDN")
+	w.Config.Ldap.BindPass, _ = cc.String("webServer.ldap.bindPass")
+	clamin, _ := cc.StringSlice("webServer.ldap.attrClaim")
+	claimAttr := map[string]string{}
+	for _, v := range clamin {
+		kv := strings.Split(v, ":")
+		if len(kv) == 2 {
+			claimAttr[kv[0]] = kv[1]
+		}
+	}
+	w.Config.Ldap.AttrClaims = claimAttr
+	w.Config.Ldap.TimeOut, _ = cc.Int("webServer.ldap.timeout")
 
 	w.Config.Version, _ = cc.String("webServer.api.version")
 	w.Config.AgentAppUrl, _ = cc.String("webServer.app.agentAppUrl")

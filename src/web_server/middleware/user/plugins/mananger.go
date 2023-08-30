@@ -24,16 +24,20 @@ import (
 
 // CurrentPlugin get current login plugin
 func CurrentPlugin(version string) metadata.LoginUserPluginInerface {
-	if "" == version {
-		version = common.BKBluekingLoginPluginVersion
+	if version == "" {
+		version = common.LdapPluginVersion
 	}
+	//临时调试
+	//version = common.LdapPluginVersion
+
+	//LdapPluginVersion
 
 	var defaultPlugin *metadata.LoginPluginInfo
 	for _, plugin := range manager.LoginPluginInfo {
 		if plugin.Version == version {
 			return plugin.HandleFunc
 		}
-		if common.BKBluekingLoginPluginVersion == plugin.Version {
+		if common.LdapPluginVersion == plugin.Version {
 			defaultPlugin = plugin
 		}
 	}

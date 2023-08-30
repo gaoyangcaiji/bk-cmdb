@@ -22,6 +22,7 @@ import (
 	"configcenter/src/common/backbone"
 	"configcenter/src/common/blog"
 	"configcenter/src/common/http/httpclient"
+	"configcenter/src/common/metadata"
 	"configcenter/src/common/resource/esb"
 	"configcenter/src/common/util"
 	"configcenter/src/storage/dal/redis"
@@ -130,6 +131,7 @@ func ValidLogin(config options.Config, disc discovery.DiscoveryInterface) gin.Ha
 // isAuthed check user is authed
 func isAuthed(c *gin.Context, config options.Config) bool {
 	rid := util.GetHTTPCCRequestID(c.Request.Header)
+	loginContext := &metadata.LoginContext{Context: c}
 	user := user.NewUser(config, Engine, CacheCli)
 	session := sessions.Default(c)
 
@@ -137,26 +139,26 @@ func isAuthed(c *gin.Context, config options.Config) bool {
 	ccToken := session.Get(common.HTTPCookieBKToken)
 	if ccToken == nil {
 		blog.Errorf("session key %s not found, rid: %s", common.HTTPCookieBKToken, rid)
-		return user.LoginUser(c)
+		return user.LoginUser(loginContext)
 	}
 
 	// check username
 	userName, ok := session.Get(common.WEBSessionUinKey).(string)
 	if !ok || "" == userName {
-		return user.LoginUser(c)
+		return user.LoginUser(loginContext)
 	}
 
 	// check owner_uin
 	ownerID, ok := session.Get(common.WEBSessionOwnerUinKey).(string)
 	if !ok || "" == ownerID {
-		return user.LoginUser(c)
+		return user.LoginUser(loginContext)
 	}
 
 	bkTokenName := common.HTTPCookieBKToken
 	bkToken, err := c.Cookie(bkTokenName)
 	blog.V(5).Infof("valid user login session token %s, cookie token %s, rid: %s", ccToken, bkToken, rid)
 	if nil != err || bkToken != ccToken {
-		return user.LoginUser(c)
+		return user.LoginUser(loginContext)
 	}
 	return true
 

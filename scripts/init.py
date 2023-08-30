@@ -326,6 +326,14 @@ webServer:
     ch: ../changelog_user/ch
     #英文版版本日志存放路径
     en: ../changelog_user/en
+  ldap:
+    endpoint: 'dc001.hosso.cc:389'
+    bindDN: 'cn=Manager,dc=hosso,dc=cc'
+    baseDN: 'dc=hosso,dc=cc'
+    bindPass: 'Aa123456'
+    attrClaim: 'uid:name,sn:family_name,givenName:given_name,mail:email'
+    userDefaultPassword: 'Aa123456'
+    timeout: 5
 
 # operation_server专属配置
 operationServer:

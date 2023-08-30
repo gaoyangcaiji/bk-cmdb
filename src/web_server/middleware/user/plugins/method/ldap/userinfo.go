@@ -11,35 +11,53 @@
  */
 
 // Package blueking defines user login method in blueking system
-package blueking
+package ldap
 
 import (
-	"encoding/json"
-	"fmt"
-	"strings"
-	"time"
-
-	apiutil "configcenter/src/apimachinery/util"
 	"configcenter/src/common"
 	cc "configcenter/src/common/backbone/configcenter"
 	"configcenter/src/common/blog"
 	"configcenter/src/common/errors"
 	"configcenter/src/common/http/httpclient"
+	cli "configcenter/src/common/ldapclient"
 	"configcenter/src/common/metadata"
 	"configcenter/src/common/resource/esb"
 	"configcenter/src/common/util"
 	"configcenter/src/web_server/middleware/user/plugins/manager"
+	"fmt"
+	"strings"
+	"time"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 )
 
 func init() {
 	plugin := &metadata.LoginPluginInfo{
-		Name:       "blueking login system",
-		Version:    common.BKBluekingLoginPluginVersion,
+		Name:       "carizon ldap system",
+		Version:    common.LdapPluginVersion,
 		HandleFunc: &user{},
 	}
 	manager.RegisterPlugin(plugin) // ("blueking login system", "self", "")
+}
+
+type LdapUser struct {
+	LarkUserID string `json:"lark_user_id"`
+	Name       string `json:"name"`
+	NameCN     string `json:"name_cn"`
+	Mail       string `json:"mail"`
+	Mobile     string `json:"mobile"`
+	Ou         string `json:"ou"`
+	UID        string `json:"uid"`
+	Gid        string `json:"gid"`
+	NotHire    bool   `json:"not_hire"`
+	HireDate   string `json:"hire_date"`
+	LeaveDate  string `json:"leave_date"`
+	Location   string `json:"location"`
+	DepInfo    string `json:"depinfo"`
+	Source     string `json:"source"`
+	FeishuUID  string `json:"feishu_uid"`
 }
 
 type loginResultData struct {
@@ -65,76 +83,66 @@ type user struct{}
 func (m *user) LoginUser(c *metadata.LoginContext, config map[string]string, isMultiOwner bool) (user *metadata.LoginUserInfo,
 	loginSucc bool) {
 	rid := util.GetHTTPCCRequestID(c.Context.Request.Header)
+	session := sessions.Default(c.Context)
 
-	bkTokens := getBkTokens(c.Context)
-	if len(bkTokens) == 0 {
-		blog.Infof("LoginUser failed, bk_token empty, rid: %s", rid)
+	cookieOwnerID, err := c.Context.Cookie(common.BKHTTPOwnerID)
+	if "" == cookieOwnerID || nil != err {
+		c.Context.SetCookie(common.BKHTTPOwnerID, common.BKDefaultOwnerID, 0, "/", "", false, false)
+		session.Set(common.WEBSessionOwnerUinKey, cookieOwnerID)
+	} else if cookieOwnerID != session.Get(common.WEBSessionOwnerUinKey) {
+		session.Set(common.WEBSessionOwnerUinKey, cookieOwnerID)
+	}
+	if err := session.Save(); err != nil {
+		blog.Warnf("save session failed, err: %s, rid: %s", err.Error(), rid)
+	}
+
+	cookieUser, err := c.Context.Cookie(common.BKUser)
+	if "" == cookieUser || nil != err {
+		blog.Errorf("login user not found, rid: %s", rid)
 		return nil, false
 	}
 
-	checkUrl, err := cc.String("webServer.site.checkUrl")
-	if err != nil {
-		blog.Errorf("get login url config item not found, rid: %s", rid)
+	if c.UserName == "" || c.Password == "" {
+		blog.Errorf("login user or password not set, rid: %s", rid)
 		return nil, false
 	}
 
-	var resultData loginResult
+	//var resultData loginResult
 	httpCli := httpclient.NewHttpClient()
 	httpCli.SetTimeOut(30 * time.Second)
 
-	tlsConf, err := apiutil.NewTLSClientConfigFromConfig("webServer.site.paas.tls")
+	ldapClient := cli.LdapClient()
+	_, dataRaw, err := ldapClient.Authenticate(c.Context, c.UserName, c.Password)
 	if err != nil {
-		blog.Errorf("get tls config error, err: %v, rid: %s", err, rid)
+		blog.Errorf("ldap to authenticate failed, error: %v, rid: %s", err, rid)
 		return nil, false
 	}
 
-	if err := m.setTLSConf(&tlsConf, httpCli, rid); err != nil {
-		blog.Errorf("set tls config error, err: %v, rid: %s", err, rid)
-		return nil, false
+	//使用mapstructure.Decode()方法
+	userInfo := metadata.LoginUserInfo{}
+	err = mapstructure.Decode(dataRaw, &userInfo)
+	if err != nil {
+		fmt.Println(err.Error())
 	}
+	return &userInfo, true
 
-	for _, bkToken := range bkTokens {
-		loginURL := checkUrl + bkToken
-		loginResultByteArr, err := httpCli.GET(loginURL, nil, nil)
-		if err != nil {
-			blog.Errorf("get user info return error: %v, rid: %s", err, rid)
-			continue
-		}
-		blog.V(3).Infof("get user info url: %s, result: %s, rid: %s", loginURL, string(loginResultByteArr), rid)
+	// return &metadata.LoginUserInfo{
+	// 	UserName: cookieUser,
+	// 	ChName:   cookieUser,
+	// 	Phone:    "",
+	// 	Email:    "blueking",
+	// 	Role:     "",
+	// 	BkToken:  "",
+	// 	OnwerUin: "0",
+	// 	IsOwner:  false,
+	// 	Language: webCommon.GetLanguageByHTTPRequest(c.Context),
+	// }, true
 
-		err = json.Unmarshal(loginResultByteArr, &resultData)
-		if err != nil {
-			blog.Errorf("fail to unmarshal data: %s, error: %v, rid: %s", string(loginResultByteArr), err, rid)
-			return nil, false
-		}
-
-		if !resultData.Result {
-			blog.Errorf("get user info return error, error code: %s, error message: %s, rid: %s", resultData.Code,
-				resultData.Message, rid)
-			continue
-		}
-
-		user = setUser(resultData, bkToken)
-		break
-	}
-	if user == nil {
-		return nil, false
-	}
-	return user, true
-}
-
-// getBkTokens get the values of the bk_token in the cookie
-func getBkTokens(c *gin.Context) (bkTokens []string) {
-	cookies := c.Request.Cookies()
-	if len(cookies) == 0 {
-		return bkTokens
-	}
-	for i := len(cookies) - 1; i >= 0; i-- {
-		if cookies[i].Name == common.HTTPCookieBKToken {
-			bkTokens = append(bkTokens, cookies[i].Value)
-		}
-	}
-	return bkTokens
+	// user = setUser(resultData, bkToken)
+	// if user == nil {
+	// 	return nil, false
+	// }
+	// return user, true
 }
 
 // setUser get userInfo from resultData
@@ -227,19 +235,4 @@ func (m *user) GetUserList(c *gin.Context, params map[string]string) ([]*metadat
 	}
 
 	return users, nil
-}
-
-func (m *user) setTLSConf(tlsConf *apiutil.TLSClientConfig, httpCli *httpclient.HttpClient, rid string) error {
-	if tlsConf != nil && len(tlsConf.CAFile) != 0 && len(tlsConf.CertFile) != 0 && len(tlsConf.KeyFile) != 0 {
-		if err := httpCli.SetTLSVerify(tlsConf); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := httpCli.SetTlsNoVerity(); err != nil {
-		blog.Warnf("httpCli.SetTlsNoVerity failed, err: %+v, rid: %s", err, rid)
-	}
-
-	return nil
 }

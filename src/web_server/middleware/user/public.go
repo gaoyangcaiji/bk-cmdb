@@ -36,8 +36,8 @@ type publicUser struct {
 }
 
 // LoginUser  user login
-func (m *publicUser) LoginUser(c *gin.Context) bool {
-	rid := util.GetHTTPCCRequestID(c.Request.Header)
+func (m *publicUser) LoginUser(c *metadata.LoginContext) bool {
+	rid := util.GetHTTPCCRequestID(c.Context.Request.Header)
 
 	isMultiOwner := false
 	loginSuccess := false
@@ -69,7 +69,7 @@ func (m *publicUser) LoginUser(c *gin.Context) bool {
 		strOwnerUinList, _ = json.Marshal(userInfo.OwnerUinArr)
 	}
 
-	session := sessions.Default(c)
+	session := sessions.Default(c.Context)
 
 	session.Set(common.WEBSessionUinKey, userInfo.UserName)
 	session.Set(common.WEBSessionChineseNameKey, userInfo.ChName)
