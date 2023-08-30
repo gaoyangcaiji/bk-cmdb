@@ -57,16 +57,14 @@ const dev = {
   // Paths
   assetsSubDirectory: '',
   assetsPublicPath: '/static/',
-  proxyTable: {
-    '/proxy': {
-      logLevel: 'info',
-      changeOrigin: true,
-      target: 'http://{webserver地址}/',
-      pathRewrite: {
-        '^/proxy': ''
-      }
+  proxyTable: [
+    {
+      context: ['/api', '/object', '/findmany', '/organization', '/regular', '/biz'],
+      target: 'http://localhost:8081',
+      secure: false,
+      changeOrigin: true
     }
-  },
+  ],
   // Various Dev Server settings
   host: 'localhost', // can be overwritten by process.env.HOST
   port: 9090, // can be overwritten by process.env.PORT, if port is in use, a free one will be determined
