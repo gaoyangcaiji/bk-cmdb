@@ -25,19 +25,15 @@ import (
 // CurrentPlugin get current login plugin
 func CurrentPlugin(version string) metadata.LoginUserPluginInerface {
 	if version == "" {
-		version = common.LdapPluginVersion
+		version = common.LdapLoginPluginVersion
 	}
-	//临时调试
-	//version = common.LdapPluginVersion
-
-	//LdapPluginVersion
 
 	var defaultPlugin *metadata.LoginPluginInfo
 	for _, plugin := range manager.LoginPluginInfo {
 		if plugin.Version == version {
 			return plugin.HandleFunc
 		}
-		if common.LdapPluginVersion == plugin.Version {
+		if common.LdapLoginPluginVersion == plugin.Version {
 			defaultPlugin = plugin
 		}
 	}

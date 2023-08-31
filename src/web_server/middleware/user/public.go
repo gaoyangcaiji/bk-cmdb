@@ -43,10 +43,12 @@ func (m *publicUser) LoginUser(c *metadata.LoginContext) bool {
 	loginSuccess := false
 	var userInfo *metadata.LoginUserInfo
 	multipleOwner := m.config.Session.MultipleOwner
+
 	if common.LoginSystemMultiSupplierTrue == multipleOwner {
 		isMultiOwner = true
 	}
 
+	// user := plugins.CurrentPlugin("skip-login")
 	user := plugins.CurrentPlugin(m.config.LoginVersion)
 	userInfo, loginSuccess = user.LoginUser(c, m.config.ConfigMap, isMultiOwner)
 

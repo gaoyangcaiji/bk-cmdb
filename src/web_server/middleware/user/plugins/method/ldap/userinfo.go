@@ -23,6 +23,7 @@ import (
 	"configcenter/src/common/metadata"
 	"configcenter/src/common/resource/esb"
 	"configcenter/src/common/util"
+	webCommon "configcenter/src/web_server/common"
 	"configcenter/src/web_server/middleware/user/plugins/manager"
 	"fmt"
 	"strings"
@@ -30,13 +31,12 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/mitchellh/mapstructure"
 )
 
 func init() {
 	plugin := &metadata.LoginPluginInfo{
 		Name:       "carizon ldap system",
-		Version:    common.LdapPluginVersion,
+		Version:    common.LdapLoginPluginVersion,
 		HandleFunc: &user{},
 	}
 	manager.RegisterPlugin(plugin) // ("blueking login system", "self", "")
@@ -58,23 +58,6 @@ type LdapUser struct {
 	DepInfo    string `json:"depinfo"`
 	Source     string `json:"source"`
 	FeishuUID  string `json:"feishu_uid"`
-}
-
-type loginResultData struct {
-	UserName string `json:"username"`
-	ChName   string `json:"chname"`
-	Phone    string `json:"Phone"`
-	Email    string `json:"email"`
-	Role     string `json:"role"`
-	Language string `json:"language"`
-	OwnerUin string `json:"owner_uin"`
-}
-
-type loginResult struct {
-	Message string
-	Code    string
-	Result  bool
-	Data    *loginResultData
 }
 
 type user struct{}
@@ -112,58 +95,23 @@ func (m *user) LoginUser(c *metadata.LoginContext, config map[string]string, isM
 	httpCli.SetTimeOut(30 * time.Second)
 
 	ldapClient := cli.LdapClient()
-	_, dataRaw, err := ldapClient.Authenticate(c.Context, c.UserName, c.Password)
+	_, _, err = ldapClient.Authenticate(c.Context, c.UserName, c.Password)
 	if err != nil {
 		blog.Errorf("ldap to authenticate failed, error: %v, rid: %s", err, rid)
 		return nil, false
 	}
 
-	//使用mapstructure.Decode()方法
-	userInfo := metadata.LoginUserInfo{}
-	err = mapstructure.Decode(dataRaw, &userInfo)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	return &userInfo, true
-
-	// return &metadata.LoginUserInfo{
-	// 	UserName: cookieUser,
-	// 	ChName:   cookieUser,
-	// 	Phone:    "",
-	// 	Email:    "blueking",
-	// 	Role:     "",
-	// 	BkToken:  "",
-	// 	OnwerUin: "0",
-	// 	IsOwner:  false,
-	// 	Language: webCommon.GetLanguageByHTTPRequest(c.Context),
-	// }, true
-
-	// user = setUser(resultData, bkToken)
-	// if user == nil {
-	// 	return nil, false
-	// }
-	// return user, true
-}
-
-// setUser get userInfo from resultData
-func setUser(resultData loginResult, bkToken string) (user *metadata.LoginUserInfo) {
-	userDetail := resultData.Data
-	if len(userDetail.OwnerUin) == 0 {
-		userDetail.OwnerUin = common.BKDefaultOwnerID
-	}
-
-	user = &metadata.LoginUserInfo{
-		UserName: userDetail.UserName,
-		ChName:   userDetail.ChName,
-		Phone:    userDetail.Phone,
-		Email:    userDetail.Email,
-		Role:     userDetail.Role,
-		BkToken:  bkToken,
-		OnwerUin: userDetail.OwnerUin,
+	return &metadata.LoginUserInfo{
+		UserName: cookieUser,
+		ChName:   cookieUser,
+		Phone:    "",
+		Email:    "carizon",
+		Role:     "",
+		BkToken:  "",
+		OnwerUin: "0",
 		IsOwner:  false,
-		Language: userDetail.Language,
-	}
-	return user
+		Language: webCommon.GetLanguageByHTTPRequest(c.Context),
+	}, true
 }
 
 // GetLoginUrl get login url

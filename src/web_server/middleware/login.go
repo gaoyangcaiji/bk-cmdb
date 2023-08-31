@@ -157,9 +157,12 @@ func isAuthed(c *gin.Context, config options.Config) bool {
 	bkTokenName := common.HTTPCookieBKToken
 	bkToken, err := c.Cookie(bkTokenName)
 	blog.V(5).Infof("valid user login session token %s, cookie token %s, rid: %s", ccToken, bkToken, rid)
-	if nil != err || bkToken != ccToken {
-		return user.LoginUser(loginContext)
+	if config.LoginVersion == common.BKBluekingLoginPluginVersion {
+		if nil != err || bkToken != ccToken {
+			return user.LoginUser(loginContext)
+		}
 	}
+
 	return true
 
 }
