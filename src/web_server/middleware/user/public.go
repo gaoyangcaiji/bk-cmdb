@@ -36,17 +36,19 @@ type publicUser struct {
 }
 
 // LoginUser  user login
-func (m *publicUser) LoginUser(c *gin.Context) bool {
-	rid := util.GetHTTPCCRequestID(c.Request.Header)
+func (m *publicUser) LoginUser(c *metadata.LoginContext) bool {
+	rid := util.GetHTTPCCRequestID(c.Context.Request.Header)
 
 	isMultiOwner := false
 	loginSuccess := false
 	var userInfo *metadata.LoginUserInfo
 	multipleOwner := m.config.Session.MultipleOwner
+
 	if common.LoginSystemMultiSupplierTrue == multipleOwner {
 		isMultiOwner = true
 	}
 
+	// user := plugins.CurrentPlugin("skip-login")
 	user := plugins.CurrentPlugin(m.config.LoginVersion)
 	userInfo, loginSuccess = user.LoginUser(c, m.config.ConfigMap, isMultiOwner)
 
@@ -69,7 +71,7 @@ func (m *publicUser) LoginUser(c *gin.Context) bool {
 		strOwnerUinList, _ = json.Marshal(userInfo.OwnerUinArr)
 	}
 
-	session := sessions.Default(c)
+	session := sessions.Default(c.Context)
 
 	session.Set(common.WEBSessionUinKey, userInfo.UserName)
 	session.Set(common.WEBSessionChineseNameKey, userInfo.ChName)

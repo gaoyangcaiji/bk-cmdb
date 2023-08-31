@@ -24,8 +24,8 @@ import (
 
 // CurrentPlugin get current login plugin
 func CurrentPlugin(version string) metadata.LoginUserPluginInerface {
-	if "" == version {
-		version = common.BKBluekingLoginPluginVersion
+	if version == "" {
+		version = common.LdapLoginPluginVersion
 	}
 
 	var defaultPlugin *metadata.LoginPluginInfo
@@ -33,7 +33,7 @@ func CurrentPlugin(version string) metadata.LoginUserPluginInerface {
 		if plugin.Version == version {
 			return plugin.HandleFunc
 		}
-		if common.BKBluekingLoginPluginVersion == plugin.Version {
+		if common.LdapLoginPluginVersion == plugin.Version {
 			defaultPlugin = plugin
 		}
 	}

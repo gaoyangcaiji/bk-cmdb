@@ -27,7 +27,7 @@ import (
 // User 登录系统抽象出来接口
 type LoginInterface interface {
 	// LoginUser 判断用户是否登录
-	LoginUser(c *gin.Context) (isLogin bool)
+	LoginUser(c *metadata.LoginContext) (isLogin bool)
 	// GetLoginUrl 获取登录系统的URL
 	GetLoginUrl(c *gin.Context) string
 	// GetUserList 获取不同登录方式下对应的用户列表

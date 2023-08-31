@@ -23,7 +23,7 @@ def generate_config_file(
         rd_server_v, db_name_v, redis_ip_v, redis_port_v,
         redis_pass_v, sentinel_pass_v, mongo_ip_v, mongo_port_v, mongo_user_v, mongo_pass_v, rs_name, user_info,
         cc_url_v, paas_url_v, full_text_search, es_url_v, es_user_v, es_pass_v,es_shard_num_v,es_replica_num_v, auth_address, auth_app_code,
-        auth_app_secret, auth_enabled, auth_scheme, auth_sync_workers, auth_sync_interval_minutes, log_level, register_ip,
+        auth_app_secret, auth_enabled, auth_scheme, auth_sync_workers, auth_sync_interval_minutes, auth_login_version,log_level, register_ip,
         enable_cryptor_v, secret_key_url_v, secrets_addrs_v, secrets_token_v, secrets_project_v, secrets_env_v
 ):
     output = os.getcwd() + "/cmdb_adminserver/configures/"
@@ -55,6 +55,7 @@ def generate_config_file(
         auth_scheme=auth_scheme,
         auth_sync_workers=auth_sync_workers,
         auth_sync_interval_minutes=auth_sync_interval_minutes,
+        auth_login_version=auth_login_version, 
         full_text_search=full_text_search,
         rs_name=rs_name,
         user_info=user_info,
@@ -319,13 +320,21 @@ webServer:
     authscheme: $auth_scheme
   login:
     #登录模式
-    version: $loginVersion
+    version: $auth_login_version
   #cmdb版本日志存放路径配置
   changelogPath:
     #中文版版本日志存放路径
     ch: ../changelog_user/ch
     #英文版版本日志存放路径
     en: ../changelog_user/en
+  ldap:
+    endpoint: 'dc001.hosso.cc:389'
+    bindDN: 'cn=Manager,dc=hosso,dc=cc'
+    baseDN: 'dc=hosso,dc=cc'
+    bindPass: 'Aa123456'
+    attrClaim: 'uid:name,sn:family_name,givenName:given_name,mail:email'
+    userDefaultPassword: 'Aa123456'
+    timeout: 5
 
 # operation_server专属配置
 operationServer:
@@ -533,10 +542,11 @@ apiGW:
     '''
 
     template = FileTemplate(common_file_template_str)
-    loginVersion = 'opensource'
-    if auth_enabled == "true":
-        loginVersion = 'blueking'
-    result = template.substitute(loginVersion=loginVersion, **context)
+    # loginVersion = 'opensource'
+    # if auth_enabled == "true":
+    #     loginVersion = 'blueking'
+    #result = template.substitute(loginVersion=loginVersion, **context)
+    result = template.substitute(**context)
     with open(output + "common.yaml", 'w') as tmp_file:
         tmp_file.write(result)
 
@@ -683,6 +693,7 @@ def main(argv):
         "auth_app_secret": "",
         "auth_sync_workers": "100",
         "auth_sync_interval_minutes": "45",
+        "auth_login_version": "ldap",
     }
     full_text_search = 'off'
     es_url = 'http://127.0.0.1:9200'
@@ -724,7 +735,7 @@ def main(argv):
         "mongo_user=", "mongo_pass=", "blueking_cmdb_url=", "user_info=",
         "blueking_paas_url=", "listen_port=", "es_url=", "es_user=", "es_pass=", "es_shard_num=","es_replica_num=","auth_address=",
         "auth_app_code=", "auth_app_secret=", "auth_enabled=",
-        "auth_scheme=", "auth_sync_workers=", "auth_sync_interval_minutes=", "full_text_search=", "log_level=", "register_ip=",
+        "auth_scheme=", "auth_sync_workers=", "auth_sync_interval_minutes=","auth_login_version=", "full_text_search=", "log_level=", "register_ip=",
         "enable_cryptor=", "secret_key_url=", "secrets_addrs=", "secrets_token=", "secrets_project=", "secrets_env="
     ]
     usage = '''
@@ -748,6 +759,7 @@ def main(argv):
       --auth_address       <auth_address>         iam address
       --auth_app_code      <auth_app_code>        app code for iam, default bk_cmdb
       --auth_app_secret    <auth_app_secret>      app code for iam
+      --auth_login_version <auth_login_version>      auth version determine which auth plugin to authenticate
       --full_text_search   <full_text_search>     full text search on or off
       --es_url             <es_url>               the es listen url, see in es dir config/elasticsearch.yml, (network.host, http.port), default: http://127.0.0.1:9200
       --es_user            <es_user>              the es user name
@@ -787,6 +799,7 @@ def main(argv):
       --auth_app_secret    xxxxxxx \\
       --auth_sync_workers  1 \\
       --auth_sync_interval_minutes  45 \\
+      --auth_login_version skip-login \\
       --full_text_search   off \\
       --es_url             http://127.0.0.1:9200 \\
       --es_user            cc \\
@@ -876,6 +889,9 @@ def main(argv):
         elif opt in ("--auth_sync_interval_minutes",):
             auth["auth_sync_interval_minutes"] = arg
             print("auth_sync_interval_minutes:", auth["auth_sync_interval_minutes"])
+        elif opt in ("--auth_login_version",):
+            auth["auth_login_version"] = arg
+            print("auth_login_version:", auth["auth_login_version"])
         elif opt in ("--full_text_search",):
             full_text_search = arg
             print('full_text_search:', full_text_search)
@@ -979,7 +995,9 @@ def main(argv):
     if auth["auth_enabled"] not in ["true", "false"]:
         print('auth_enabled value invalid, can only be `true` or `false`')
         sys.exit()
-
+    if auth["auth_login_version"] not in ["blueking", "opensource", "skip-login", "ldap"]:
+        print('auth_login_version value invalid, can only be `blueking`、`opensource`、`skip-login` or `ldap`')
+        sys.exit()
     if auth["auth_scheme"] == "iam" and auth["auth_enabled"] == 'true':
         if not auth["auth_address"]:
             print("auth_address can't be empty when iam auth enabled")

@@ -62,9 +62,15 @@ type LoginUserPluginParams struct {
 	Header       http.Header    // Reserved word, not used now
 }
 
+type LoginContext struct {
+	Context  *gin.Context
+	UserName string
+	Password string
+}
+
 // LoginUserPluginInerface TODO
 type LoginUserPluginInerface interface {
-	LoginUser(c *gin.Context, config map[string]string, isMultiOwner bool) (user *LoginUserInfo, loginSucc bool)
+	LoginUser(c *LoginContext, config map[string]string, isMultiOwner bool) (user *LoginUserInfo, loginSucc bool)
 	GetLoginUrl(c *gin.Context, config map[string]string, input *LogoutRequestParams) string
 	GetUserList(c *gin.Context, config map[string]string) ([]*LoginSystemUserInfo, *errors.RawErrorInfo)
 }

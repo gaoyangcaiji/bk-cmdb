@@ -38,7 +38,6 @@ func (s *Service) LogOutUser(c *gin.Context) {
 	ret.BaseResp.Result = true
 	ret.Data.LogoutURL = loginURL
 	c.JSON(200, ret)
-	return
 }
 
 // Login html file
@@ -74,27 +73,30 @@ func (s *Service) LoginUser(c *gin.Context) {
 			})
 			return
 		}
-		if userWithPassword[0] == userName && userWithPassword[1] == password {
-			c.SetCookie(common.BKUser, userName, 24*60*60, "/", "", false, false)
-			session := sessions.Default(c)
-			session.Set(userName, time.Now().Unix())
-			if err := session.Save(); err != nil {
-				blog.Warnf("save session failed, err: %s, rid: %s", err.Error(), rid)
-			}
-			userManger := user.NewUser(*s.Config, s.Engine, s.CacheCli)
-			userManger.LoginUser(c)
-			var redirectURL string
-			if c.Query("c_url") != "" {
-				redirectURL = c.Query("c_url")
-			} else {
-				redirectURL = s.Config.Site.DomainUrl
-			}
-			c.Redirect(302, redirectURL)
-			return
-		}
 	}
+
+	c.SetCookie(common.BKUser, userName, 24*60*60, "/", "", false, false)
+	session := sessions.Default(c)
+	session.Set(userName, time.Now().Unix())
+	if err := session.Save(); err != nil {
+		blog.Warnf("save session failed, err: %s, rid: %s", err.Error(), rid)
+	}
+	userManger := user.NewUser(*s.Config, s.Engine, s.CacheCli)
+	loginContext := &metadata.LoginContext{Context: c, UserName: userName, Password: password}
+
+	//check auth
+	if userManger.LoginUser(loginContext) {
+		var redirectURL string
+		if c.Query("c_url") != "" {
+			redirectURL = c.Query("c_url")
+		} else {
+			redirectURL = s.Config.Site.DomainUrl
+		}
+		c.Redirect(302, redirectURL)
+		return
+	}
+
 	c.HTML(200, "login.html", gin.H{
 		"error": defErr.CCError(common.CCErrWebUsernamePasswdWrong).Error(),
 	})
-	return
 }

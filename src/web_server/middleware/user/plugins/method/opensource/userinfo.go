@@ -43,13 +43,13 @@ func init() {
 type user struct{}
 
 // LoginUser user login
-func (m *user) LoginUser(c *gin.Context, config map[string]string, isMultiOwner bool) (*metadata.LoginUserInfo, bool) {
-	rid := util.GetHTTPCCRequestID(c.Request.Header)
-	session := sessions.Default(c)
+func (m *user) LoginUser(c *metadata.LoginContext, config map[string]string, isMultiOwner bool) (*metadata.LoginUserInfo, bool) {
+	rid := util.GetHTTPCCRequestID(c.Context.Request.Header)
+	session := sessions.Default(c.Context)
 
-	cookieOwnerID, err := c.Cookie(common.BKHTTPOwnerID)
+	cookieOwnerID, err := c.Context.Cookie(common.BKHTTPOwnerID)
 	if "" == cookieOwnerID || nil != err {
-		c.SetCookie(common.BKHTTPOwnerID, common.BKDefaultOwnerID, 0, "/", "", false, false)
+		c.Context.SetCookie(common.BKHTTPOwnerID, common.BKDefaultOwnerID, 0, "/", "", false, false)
 		session.Set(common.WEBSessionOwnerUinKey, cookieOwnerID)
 	} else if cookieOwnerID != session.Get(common.WEBSessionOwnerUinKey) {
 		session.Set(common.WEBSessionOwnerUinKey, cookieOwnerID)
@@ -58,7 +58,7 @@ func (m *user) LoginUser(c *gin.Context, config map[string]string, isMultiOwner 
 		blog.Warnf("save session failed, err: %s, rid: %s", err.Error(), rid)
 	}
 
-	cookieUser, err := c.Cookie(common.BKUser)
+	cookieUser, err := c.Context.Cookie(common.BKUser)
 	if "" == cookieUser || nil != err {
 		blog.Errorf("login user not found, rid: %s", rid)
 		return nil, false
@@ -79,7 +79,7 @@ func (m *user) LoginUser(c *gin.Context, config map[string]string, isMultiOwner 
 			BkToken:  "",
 			OnwerUin: "0",
 			IsOwner:  false,
-			Language: webCommon.GetLanguageByHTTPRequest(c),
+			Language: webCommon.GetLanguageByHTTPRequest(c.Context),
 		}, true
 	}
 

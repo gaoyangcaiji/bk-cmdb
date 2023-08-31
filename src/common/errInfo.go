@@ -239,6 +239,19 @@ const (
 	// 该状态码只提供给支持可多选字段校验报错时使用，目前用户类型，枚举多选，枚举引用，组织类型校验可多选报错时可以使用
 	CCErrCommParamsNeedSingleChoice = 1199092
 
+	// CCErrCommLdapClientInitFailed %s init failed
+	CCErrCommLdapClientInitFailed = 1199093
+	// CCErrCommLdapClientBindFailed
+	CCErrCommLdapClientBindFailed = 1199094
+	// CCErrCommLdapClientEntryNotFound no entry found
+	CCErrCommLdapClientEntryNotFound = 1199095
+	// CCErrCommLdapClientConnectionTimeout ldap connenct time out
+	CCErrCommLdapClientConnectionTimeout = 1199096
+	// CCErrCommLdapClientUnknownUserName unknown user name
+	CCErrCommLdapClientUnknownUserName = 1199097
+	// CCErrCommLdapClientOperate ldap operate error,%s
+	CCErrCommLdapClientOperate = 1199098
+
 	// too many requests
 	CCErrTooManyRequestErr = 1199997
 

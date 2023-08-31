@@ -1331,6 +1331,8 @@ const (
 	BKOpenSourceLoginPluginVersion = "opensource"
 	// BKSkipLoginPluginVersion TODO
 	BKSkipLoginPluginVersion = "skip-login"
+	// BKSkipLoginPluginVersion TODO
+	LdapLoginPluginVersion = "ldap"
 
 	// BKNoopMonitorPlugin TODO
 	// monitor plugin type

@@ -39,13 +39,13 @@ func init() {
 type user struct{}
 
 // LoginUser user login
-func (m *user) LoginUser(c *gin.Context, config map[string]string, isMultiOwner bool) (user *metadata.LoginUserInfo, loginSucc bool) {
+func (m *user) LoginUser(c *metadata.LoginContext, config map[string]string, isMultiOwner bool) (user *metadata.LoginUserInfo, loginSucc bool) {
 
-	session := sessions.Default(c)
+	session := sessions.Default(c.Context)
 
-	cookieOwnerID, err := c.Cookie(common.BKHTTPOwnerID)
+	cookieOwnerID, err := c.Context.Cookie(common.BKHTTPOwnerID)
 	if "" == cookieOwnerID || nil != err {
-		c.SetCookie(common.BKHTTPOwnerID, common.BKDefaultOwnerID, 0, "/", "", false, false)
+		c.Context.SetCookie(common.BKHTTPOwnerID, common.BKDefaultOwnerID, 0, "/", "", false, false)
 		session.Set(common.WEBSessionOwnerUinKey, cookieOwnerID)
 	} else if cookieOwnerID != session.Get(common.WEBSessionOwnerUinKey) {
 		session.Set(common.WEBSessionOwnerUinKey, cookieOwnerID)
@@ -60,7 +60,7 @@ func (m *user) LoginUser(c *gin.Context, config map[string]string, isMultiOwner 
 		BkToken:  "",
 		OnwerUin: "0",
 		IsOwner:  false,
-		Language: webCommon.GetLanguageByHTTPRequest(c),
+		Language: webCommon.GetLanguageByHTTPRequest(c.Context),
 	}
 	return user, true
 }
