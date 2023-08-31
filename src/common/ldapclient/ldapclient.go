@@ -168,7 +168,7 @@ func (cli *ldapsrv) SearchUserList(organizationName, username string, attrs ...s
 		return nil, ErrConnectionTimeout
 	}
 	defer cn.Close()
-	if err := cn.Bind(cli.Config.BaseDN, cli.Config.BindPass); err != nil {
+	if err := cn.Bind(cli.Config.BindDN, cli.Config.BindPass); err != nil {
 		return nil, ErrInvalidCredentials
 	}
 	entries, err := cn.SearchEntries(cli.Config.BaseDN, organizationName, username, ldap.ScopeWholeSubtree, attrs...)
@@ -266,8 +266,8 @@ func (cli *ldapsrv) AddOrganization(cn conn, organizationName string) error {
 		cn = cnnew
 		defer cn.Close()
 	}
-	if cli.Config.BaseDN != "" {
-		if err := cn.Bind(cli.Config.BaseDN, cli.Config.BindPass); err != nil {
+	if cli.Config.BindDN != "" {
+		if err := cn.Bind(cli.Config.BindDN, cli.Config.BindPass); err != nil {
 			return ErrInvalidCredentials
 		}
 	}
@@ -297,8 +297,8 @@ func (cli *ldapsrv) DelOrganization(cn conn, organizationName string) error {
 		cn = cnnew
 		defer cn.Close()
 	}
-	if cli.Config.BaseDN != "" {
-		if err := cn.Bind(cli.Config.BaseDN, cli.Config.BindPass); err != nil {
+	if cli.Config.BindDN != "" {
+		if err := cn.Bind(cli.Config.BindDN, cli.Config.BindPass); err != nil {
 			return ErrInvalidCredentials
 		}
 	}
@@ -323,8 +323,8 @@ func (cli *ldapsrv) FindOrganization(cn conn, organizationName string) error {
 		cn = cnnew
 		defer cn.Close()
 	}
-	if cli.Config.BaseDN != "" {
-		if err := cn.Bind(cli.Config.BaseDN, cli.Config.BindPass); err != nil {
+	if cli.Config.BindDN != "" {
+		if err := cn.Bind(cli.Config.BindDN, cli.Config.BindPass); err != nil {
 			return ErrInvalidCredentials
 		}
 	}
@@ -373,8 +373,8 @@ func (cli *ldapsrv) AddUser(userName, password, organizationName, title, email s
 	}
 	defer cn.Close()
 
-	if cli.Config.BaseDN != "" {
-		if err := cn.Bind(cli.Config.BaseDN, cli.Config.BindPass); err != nil {
+	if cli.Config.BindDN != "" {
+		if err := cn.Bind(cli.Config.BindDN, cli.Config.BindPass); err != nil {
 			return ErrInvalidCredentials
 		}
 	}
@@ -427,9 +427,9 @@ func (cli *ldapsrv) AddUser(userName, password, organizationName, title, email s
 
 // findBasicUserDetails finds user's LDAP attributes that were specified. It returns nil if no such user.
 func (cli *ldapsrv) FindBasicUserDetails(cn conn, userName string, attrs []string) (map[string]interface{}, error) {
-	if cli.Config.BaseDN != "" {
+	if cli.Config.BindDN != "" {
 		// We need to login to a LDAP server with a service account for retrieving user data.
-		if err := cn.Bind(cli.Config.BaseDN, cli.Config.BaseDN); err != nil {
+		if err := cn.Bind(cli.Config.BindDN, cli.Config.BindPass); err != nil {
 			return nil, ErrInvalidCredentials
 		}
 	}

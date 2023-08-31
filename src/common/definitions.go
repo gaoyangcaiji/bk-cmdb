@@ -1332,7 +1332,7 @@ const (
 	// BKSkipLoginPluginVersion TODO
 	BKSkipLoginPluginVersion = "skip-login"
 	// BKSkipLoginPluginVersion TODO
-	LdapPluginVersion = "ldap"
+	LdapLoginPluginVersion = "ldap"
 
 	// BKNoopMonitorPlugin TODO
 	// monitor plugin type
