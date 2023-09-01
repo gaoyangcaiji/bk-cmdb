@@ -25,7 +25,7 @@ const initialConfig = {
     maxBizTopoLevel: 0, // 最大拓扑层级数
   },
   site: {
-    name: '蓝鲸配置平台', // 网站名
+    name: '资产管理平台', // 网站名
     separator: '|' // 网站名称路由分隔符
   },
   footer: {
