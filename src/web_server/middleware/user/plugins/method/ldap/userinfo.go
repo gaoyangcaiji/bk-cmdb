@@ -42,24 +42,6 @@ func init() {
 	manager.RegisterPlugin(plugin) // ("blueking login system", "self", "")
 }
 
-type LdapUser struct {
-	LarkUserID string `json:"lark_user_id"`
-	Name       string `json:"name"`
-	NameCN     string `json:"name_cn"`
-	Mail       string `json:"mail"`
-	Mobile     string `json:"mobile"`
-	Ou         string `json:"ou"`
-	UID        string `json:"uid"`
-	Gid        string `json:"gid"`
-	NotHire    bool   `json:"not_hire"`
-	HireDate   string `json:"hire_date"`
-	LeaveDate  string `json:"leave_date"`
-	Location   string `json:"location"`
-	DepInfo    string `json:"depinfo"`
-	Source     string `json:"source"`
-	FeishuUID  string `json:"feishu_uid"`
-}
-
 type user struct{}
 
 // LoginUser user login
