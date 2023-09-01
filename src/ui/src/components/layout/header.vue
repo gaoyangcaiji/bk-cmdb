@@ -14,7 +14,7 @@
   <header class="header-layout" v-test-id.global="'header'">
     <div class="logo">
       <router-link class="logo-link" to="/index">
-        {{$t('蓝鲸配置平台')}}
+        {{$t('资产管理平台')}}
       </router-link>
     </div>
     <nav class="header-nav" v-test-id.global="'headerNav'">
@@ -61,8 +61,7 @@
         <template slot="content">
           <a class="link-item" target="_blank" :href="helpDocUrl">{{$t('产品文档')}}</a>
           <a class="link-item" target="_blank" @click="handleChangeLog()" style="cursor:pointer">{{$t('版本日志')}}</a>
-          <a class="link-item" target="_blank" href="https://bk.tencent.com/s-mart/community">{{$t('问题反馈')}}</a>
-          <a class="link-item" target="_blank" href="https://github.com/TencentBlueKing/bk-cmdb">{{$t('开源社区')}}</a>
+          <a class="link-item" target="_blank" href="">{{$t('问题反馈')}}</a>
         </template>
       </bk-popover>
       <bk-popover class="info-item"
@@ -128,7 +127,7 @@
       ...mapGetters(['userName']),
       ...mapGetters('objectBiz', ['bizId']),
       helpDocUrl() {
-        return this.$Site.helpDocUrl || 'http://docs.bk.tencent.com/product_white_paper/cmdb/'
+        return this.$Site.helpDocUrl
       },
       visibleMenu() {
         return menu.filter((menuItem) => {

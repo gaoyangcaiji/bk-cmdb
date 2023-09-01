@@ -40,7 +40,6 @@
       </div>
     </div>
     <the-map style="user-select: none;"></the-map>
-    <the-footer></the-footer>
   </div>
 </template>
 
@@ -53,7 +52,6 @@
   import fullTextSearchResultList from './children/full-text-search/result-list.vue'
   import fullTextSearchResultTab from './children/full-text-search/result-tab.vue'
   import theMap from './children/map'
-  import theFooter from './children/footer'
   export default {
     name: 'index',
     components: {
@@ -61,8 +59,7 @@
       fullTextSearchBar,
       fullTextSearchResultList,
       fullTextSearchResultTab,
-      theMap,
-      theFooter
+      theMap
     },
     data() {
       return {

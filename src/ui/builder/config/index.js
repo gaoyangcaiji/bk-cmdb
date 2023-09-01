@@ -59,7 +59,7 @@ const dev = {
   assetsPublicPath: '/static/',
   proxyTable: [
     {
-      context: ['/api', '/object', '/findmany', '/organization', '/regular', '/biz'],
+      context: ['/api', '/object', '/findmany', '/organization', '/regular', '/biz', '/user', '/find'],
       target: 'http://localhost:8081',
       secure: false,
       changeOrigin: true
