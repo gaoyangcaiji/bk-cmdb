@@ -21,7 +21,7 @@ const { fixRequestBody } = require('http-proxy-middleware')
 
 
 const config = {
-  BUILD_TITLE: '',
+  BUILD_TITLE: '资产管理平台',
   BUILD_OUTPUT: '../bin/enterprise/cmdb'
 }
 
@@ -59,8 +59,8 @@ const dev = {
   assetsPublicPath: '/static/',
   proxyTable: [
     {
-      context: ['/api', '/object', '/findmany', '/organization', '/regular', '/biz', '/user', '/find'],
-      target: 'http://localhost:8081',
+      context: ['/api', '/object', '/findmany', '/organization', '/regular', '/biz', '/user', '/find', '/table', '/logout'],
+      target: 'http://carizon.cmdb.aidi-dev.hobot.cc',
       secure: false,
       changeOrigin: true
     }
