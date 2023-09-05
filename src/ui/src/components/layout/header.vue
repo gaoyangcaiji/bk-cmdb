@@ -128,7 +128,8 @@
       ...mapGetters(['userName']),
       ...mapGetters('objectBiz', ['bizId']),
       helpDocUrl() {
-        return this.$Site.helpDocUrl || 'https://horizonrobotics.feishu.cn/wiki/I5PLwkDu3i8pSskMb6JcUbeOnse'
+        return 'https://horizonrobotics.feishu.cn/wiki/I5PLwkDu3i8pSskMb6JcUbeOnse'
+        // return this.$Site.helpDocUrl || 'https://horizonrobotics.feishu.cn/wiki/I5PLwkDu3i8pSskMb6JcUbeOnse'
       },
       visibleMenu() {
         return menu.filter((menuItem) => {
