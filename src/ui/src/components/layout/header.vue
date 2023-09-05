@@ -61,7 +61,7 @@
         <template slot="content">
           <a class="link-item" target="_blank" :href="helpDocUrl">{{$t('产品文档')}}</a>
           <a class="link-item" target="_blank" @click="handleChangeLog()" style="cursor:pointer">{{$t('版本日志')}}</a>
-          <a class="link-item" target="_blank" href="">{{$t('问题反馈')}}</a>
+          <a class="link-item" target="_blank" :href="feedbackUrl">{{$t('问题反馈')}}</a>
         </template>
       </bk-popover>
       <bk-popover class="info-item"
@@ -120,14 +120,15 @@
         isShowChangeLogs: false,
         versionList: [],
         currentVersion: '',
-        sysLangs: LANG_SET
+        sysLangs: LANG_SET,
+        feedbackUrl: 'https://horizonrobotics.feishu.cn/wiki/YA8vwXwHtiyBqykc7QFcSG2Anqd',
       }
     },
     computed: {
       ...mapGetters(['userName']),
       ...mapGetters('objectBiz', ['bizId']),
       helpDocUrl() {
-        return this.$Site.helpDocUrl
+        return this.$Site.helpDocUrl || 'https://horizonrobotics.feishu.cn/wiki/I5PLwkDu3i8pSskMb6JcUbeOnse'
       },
       visibleMenu() {
         return menu.filter((menuItem) => {

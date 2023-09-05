@@ -13,9 +13,7 @@
 <template>
   <div class="wrapper">
     <form class="form" method="POST">
-      <h1 class="title">
-        <img class="logo" src="./assets/blueking_cn.svg" alt="logo" width="178" height="33">
-      </h1>
+      <div class="title">你好，carizon</div>
       <div class="form-error" ref="error">{{error}}</div>
       <div class="form-item">
         <img class="form-item-icon" src="./assets/user.svg" width="16" height="16">
@@ -70,11 +68,13 @@
     margin: 0 auto;
     margin-top: calc((100vh - 400px) / 3);
     .title {
-        height: 110px;
+        padding: 40px 0 20px 0;
         display: flex;
         align-items: center;
         justify-content: center;
         border-bottom: 1px solid #F0F1F5;
+        color:#4d66c6;
+        font-size: 28px;
     }
     .form-error {
         width: 290px;
