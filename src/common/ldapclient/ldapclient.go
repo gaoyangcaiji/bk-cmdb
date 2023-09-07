@@ -41,6 +41,7 @@ type LdapClientInterface interface {
 // low level client
 type conn interface {
 	Bind(bindDN, password string) error
+	SearchEntriesByFuzzyName(baseDN, userName string, scope int, attrs ...string) ([]map[string]interface{}, error)
 	SearchEntries(baseDN, organizationName, userName string, scope int, attrs ...string) ([]map[string]interface{}, error)
 	searchEntriesLow(baseDN, query string, attrs []string) ([]map[string]interface{}, error)
 	ResetPassword(userIden, newPass string) (bool, error)
@@ -171,7 +172,8 @@ func (cli *ldapsrv) SearchUserList(organizationName, username string, attrs ...s
 	if err := cn.Bind(cli.Config.BindDN, cli.Config.BindPass); err != nil {
 		return nil, ErrInvalidCredentials
 	}
-	entries, err := cn.SearchEntries(cli.Config.BaseDN, organizationName, username, ldap.ScopeWholeSubtree, attrs...)
+
+	entries, err := cn.SearchEntriesByFuzzyName(cli.Config.BaseDN, username, ldap.ScopeWholeSubtree, attrs...)
 	if err != nil {
 		return nil, err
 	}
@@ -494,6 +496,35 @@ func (c *ldapConn) Bind(bindDN, password string) error {
 		return ErrInvalidCredentials
 	}
 	return err
+}
+
+func (c *ldapConn) SearchEntriesByFuzzyName(baseDN, userName string, scope int, attrs ...string) ([]map[string]interface{}, error) {
+	// In actual scenario change the filter based on your requirements
+	// To achieve fuzzy search, you can use wildcards (*)
+	searchRequest := ldap.NewSearchRequest(
+		baseDN, // The base dn to search
+		scope, ldap.NeverDerefAliases, 0, 0, false,
+		fmt.Sprintf("(&(objectClass=inetOrgPerson)(uid=*%s*))", userName), // This could be your fuzzy username
+		attrs, // Attributes to retrieve
+		nil,
+	)
+
+	res, err := c.Search(searchRequest)
+	if err != nil {
+		panic(err)
+	}
+
+	var entries []map[string]interface{}
+	for _, v := range res.Entries {
+		entry := map[string]interface{}{"dn": v.DN}
+		for _, attr := range v.Attributes {
+			// We need the first value only for the named attribute.
+			entry[attr.Name] = attr.Values[0]
+		}
+		entries = append(entries, entry)
+	}
+
+	return entries, nil
 }
 
 func (c *ldapConn) SearchEntries(baseDN, organizationName, userName string, scope int, attrs ...string) ([]map[string]interface{}, error) {

@@ -21,12 +21,10 @@ import (
 	"configcenter/src/common/http/httpclient"
 	cli "configcenter/src/common/ldapclient"
 	"configcenter/src/common/metadata"
-	"configcenter/src/common/resource/esb"
 	"configcenter/src/common/util"
 	webCommon "configcenter/src/web_server/common"
 	"configcenter/src/web_server/middleware/user/plugins/manager"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/gin-contrib/sessions"
@@ -134,32 +132,25 @@ func (m *user) GetLoginUrl(c *gin.Context, config map[string]string, input *meta
 func (m *user) GetUserList(c *gin.Context, params map[string]string) ([]*metadata.LoginSystemUserInfo,
 	*errors.RawErrorInfo) {
 	rid := util.GetHTTPCCRequestID(c.Request.Header)
-	query := c.Request.URL.Query()
-	for key, values := range query {
-		params[key] = strings.Join(values, ";")
+	username, ok := c.GetQuery("fuzzy_lookups")
+	if !ok {
+		return make([]*metadata.LoginSystemUserInfo, 0), nil
 	}
 
-	// try to use esb user list api
-	result, err := esb.EsbClient().User().ListUsers(c.Request.Context(), c.Request.Header, params)
+	// try to use ldap list user
+	ldapClient := cli.LdapClient()
+	result, err := ldapClient.SearchUserList("", username, "dn", "cn", "uid")
 	if err != nil {
-		blog.Errorf("get users by esb client failed, http failed, err: %+v, rid: %s", err, rid)
+		blog.Errorf("get users by ldap client failed, error: %+v, rid: %s", err, rid)
 		return nil, &errors.RawErrorInfo{
-			ErrCode: common.CCErrCommHTTPDoRequestFailed,
+			ErrCode: common.CCErrCommLdapClientUnknownUserName,
 		}
 	}
-
-	if !result.Result {
-		blog.Errorf("request esb, get user list failed, err: %v, rid: %s", result.Message, result.EsbRequestID)
-		return nil, &errors.RawErrorInfo{
-			ErrCode: common.CCErrCommHTTPDoRequestFailed,
-		}
-	}
-
 	users := make([]*metadata.LoginSystemUserInfo, 0)
-	for _, userInfo := range result.Data {
+	for _, userInfo := range result {
 		user := &metadata.LoginSystemUserInfo{
-			CnName: userInfo.DisplayName,
-			EnName: userInfo.Username,
+			CnName: fmt.Sprint(userInfo["cn"]),
+			EnName: fmt.Sprint(userInfo["cn"]),
 		}
 		users = append(users, user)
 	}
