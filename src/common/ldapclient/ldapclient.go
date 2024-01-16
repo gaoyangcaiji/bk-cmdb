@@ -536,7 +536,7 @@ func (c *ldapConn) SearchEntries(baseDN, organizationName, userName string, scop
 		query = "(objectClass=*)"
 	} else { // user can be *
 		query = fmt.Sprintf(
-			"(&(objectClass=inetOrgPerson)(uid=%[1]s))", userName)
+			"(&(objectClass=inetOrgPerson)(cn=%[1]s))", userName)
 	}
 
 	if organizationName != "" {
