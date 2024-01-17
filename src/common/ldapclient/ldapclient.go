@@ -504,8 +504,8 @@ func (c *ldapConn) SearchEntriesByFuzzyName(baseDN, userName string, scope int, 
 	searchRequest := ldap.NewSearchRequest(
 		baseDN, // The base dn to search
 		scope, ldap.NeverDerefAliases, 0, 0, false,
-		fmt.Sprintf("(&(objectClass=inetOrgPerson)(uid=*%s*))", userName), // This could be your fuzzy username
-		attrs, // Attributes to retrieve
+		fmt.Sprintf("(cn=*%s*)", userName), // This could be your fuzzy username
+		attrs,                              // Attributes to retrieve
 		nil,
 	)
 
@@ -536,7 +536,7 @@ func (c *ldapConn) SearchEntries(baseDN, organizationName, userName string, scop
 		query = "(objectClass=*)"
 	} else { // user can be *
 		query = fmt.Sprintf(
-			"(&(objectClass=inetOrgPerson)(cn=%[1]s))", userName)
+			"(cn=%[1]s)", userName)
 	}
 
 	if organizationName != "" {

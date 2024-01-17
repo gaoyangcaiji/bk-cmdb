@@ -34,5 +34,5 @@ func init() {
 }
 
 func TestAuthenticate(t *testing.T) {
-	ldapClient.Authenticate(context.TODO(), "zz7lte6", "sDDF,\\sda15sdf!sfjlkj")
+	ldapClient.Authenticate(context.TODO(), "zz7lte6", "5086501xzsD!")
 }
