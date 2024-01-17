@@ -128,8 +128,7 @@
       ...mapGetters(['userName']),
       ...mapGetters('objectBiz', ['bizId']),
       helpDocUrl() {
-        return 'http://docs-cmdb-test.aidi-dev.hobot.cc/index.html'
-        // return this.$Site.helpDocUrl || 'https://horizonrobotics.feishu.cn/wiki/I5PLwkDu3i8pSskMb6JcUbeOnse'
+        return 'https://cmdb-docs-dev.carizon.work'
       },
       visibleMenu() {
         return menu.filter((menuItem) => {
